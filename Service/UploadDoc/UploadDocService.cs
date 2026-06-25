@@ -30,7 +30,7 @@ public class UploadDocService : IUploadDocService
 
             // var credential = GoogleCredential.FromFile(serviceAccountKeyFile).CreateScoped(scope);
             var credential = await GoogleCredential.GetApplicationDefaultAsync();
-            var token = await credential.UnderlyingCredential.GetAccessTokenForRequestAsync();
+            var token = await credential.CreateScoped(scope).UnderlyingCredential.GetAccessTokenForRequestAsync();
 
             var insertBaseUrl = _config["GCP:Bucket:url:insert"].Replace("{bucket-name}", bucketName);
 
