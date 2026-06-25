@@ -23,6 +23,7 @@ public class UploadDocService : IUploadDocService
     {
         try
         {
+            Console.WriteLine($"Request: {request}");
             var httpClient = _httpClientFactory.CreateClient();
             var bucketName = _config["GCP:Bucket:name"];
             var serviceAccountKeyFile = _config["GCP:Bucket:serviceAccountKeyFile"];
@@ -30,7 +31,9 @@ public class UploadDocService : IUploadDocService
 
             // var credential = GoogleCredential.FromFile(serviceAccountKeyFile).CreateScoped(scope);
             var credential = await GoogleCredential.GetApplicationDefaultAsync();
+            Console.WriteLine($"Credential: {credential}");
             var token = await credential.CreateScoped(scope).UnderlyingCredential.GetAccessTokenForRequestAsync();
+            Console.WriteLine($"Token: {token}");
 
             var insertBaseUrl = _config["GCP:Bucket:url:insert"].Replace("{bucket-name}", bucketName);
 
