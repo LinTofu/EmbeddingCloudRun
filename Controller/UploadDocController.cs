@@ -34,6 +34,8 @@ public class UploadDocController : ControllerBase
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Error occurred while uploading document to bucket.");
+            
             return StatusCode(500, new { error = ex.Message });
         }
     }

@@ -34,6 +34,8 @@ public class DeleteDocController : ControllerBase
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Error occurred while deleting document from bucket.");
+            
             return StatusCode(500, new { error = ex.Message });
         }
     }
