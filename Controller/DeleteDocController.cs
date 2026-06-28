@@ -3,7 +3,7 @@
 namespace EmbeddingCloudRun;
 
 /// <summary>
-/// Upload documents to GCP Bucket
+/// Delete documents from GCP Bucket
 /// </summary>
 [ApiController]
 
