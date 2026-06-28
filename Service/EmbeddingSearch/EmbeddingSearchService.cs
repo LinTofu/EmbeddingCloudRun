@@ -19,7 +19,9 @@ public class EmbeddingSearchService : IEmbeddingSearchService
     {
         try
         {
-            var gcpClient = await SearchServiceClient.CreateAsync();
+            var gcpClient = await new SearchServiceClientBuilder {
+                Endpoint = "us-discoveryengine.googleapis.com"
+            }.BuildAsync();
 
             var project = _config["VertexAISearch:Project"];
             var location = _config["VertexAISearch:Location"];
