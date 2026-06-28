@@ -50,6 +50,7 @@ public class EmbeddingSearchService : IEmbeddingSearchService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred while performing embedding search.");
+            Console.WriteLine(ex);
             throw;
         }
     }
