@@ -2,5 +2,5 @@
 
 public class EmbeddingSearchResponse : ApiResponse
 {
-    public List<string>? ResultAnsList { get; set; }
+    public List<string> ResultAnsList { get; set; } = [];
 }
