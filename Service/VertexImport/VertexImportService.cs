@@ -17,9 +17,9 @@ public class VertexImportService : IVertexImportService
     {
         try
         {
-            var project = _configuration["VertexAI:ProjectId"];
-            var location = _configuration["VertexAI:Location"];
-            var datastore = _configuration["VertexAI:DataStoreId"];
+            var project = _configuration["VertexAISearch:Project"];
+            var location = _configuration["VertexAISearch:Location"];
+            var datastore = _configuration["VertexAISearch:DataStoreId"];
             var endpoint = $"{location}-discoveryengine.googleapis.com";
 
             var bucket = _configuration["GCP:Bucket:name"];
