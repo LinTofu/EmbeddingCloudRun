@@ -23,7 +23,6 @@ public class UploadDocService : IUploadDocService
     {
         try
         {
-            Console.WriteLine($"Request: {request}");
             var httpClient = _httpClientFactory.CreateClient();
             var bucketName = _config["GCP:Bucket:name"];
             var serviceAccountKeyFile = _config["GCP:Bucket:serviceAccountKeyFile"];
@@ -56,6 +55,8 @@ public class UploadDocService : IUploadDocService
 
                 var response = await httpClient.PostAsync(insertUrl, content);;
                 response.EnsureSuccessStatusCode();
+
+                // 
                 
                 return new ApiResponse
                 {

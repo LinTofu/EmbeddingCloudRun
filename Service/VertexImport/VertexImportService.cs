@@ -46,7 +46,7 @@ public class VertexImportService : IVertexImportService
 
             _logger.LogInformation($"Import operation started: {operation.Name}");
 
-            await operation.PollUntilCompletedAsync();
+            // await operation.PollUntilCompletedAsync();
 
             _logger.LogInformation($"Import operation completed: {operation.Name}");
         }
