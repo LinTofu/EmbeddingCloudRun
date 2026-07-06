@@ -36,10 +36,11 @@ public class VertexImportService : IVertexImportService
                 Parent = parent,
                 GcsSource = new GcsSource
                 {
-                    InputUris = { $"gs://{bucket}/{request.body.FileName}" },
-                    DataSchema = "content",
+                    // InputUris = { $"gs://{bucket}/{request.body.FileName}" },
+                    // DataSchema = "content",
+                    InputUris = { $"gs://{bucket}/*" },
                 },
-                ReconciliationMode = ImportDocumentsRequest.Types.ReconciliationMode.Incremental
+                ReconciliationMode = ImportDocumentsRequest.Types.ReconciliationMode.Full
             };
 
             var operation = await vertexClient.ImportDocumentsAsync(vertexRequest);
