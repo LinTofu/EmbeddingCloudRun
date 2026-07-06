@@ -39,6 +39,7 @@ public class VertexImportService : IVertexImportService
                     // InputUris = { $"gs://{bucket}/{request.body.FileName}" },
                     // DataSchema = "content",
                     InputUris = { $"gs://{bucket}/*" },
+                    DataSchema = "content"
                 },
                 ReconciliationMode = ImportDocumentsRequest.Types.ReconciliationMode.Full
             };
