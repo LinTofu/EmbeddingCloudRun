@@ -78,38 +78,59 @@ public class GlobalMiddleware
         // Read Request Content
         context.Request.EnableBuffering();
 
-        ApiRequest<ApiResponse>? requestBody;
-        string? requestBodyString;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync();
 
-        using var reader = new StreamReader(
-            context.Request.Body, 
-            Encoding.UTF8,
-            detectEncodingFromByteOrderMarks: false,
-            leaveOpen: true
-        );
+            if (form.Files.Count == 0)
+            {
+                throw new ArgumentException("File is missing in the request.");
+            }
 
-        requestBodyString = await reader.ReadToEndAsync();
+            // 檢查文字欄位
+            var senderCode = form["header.senderCode"];
+            if (string.IsNullOrWhiteSpace(senderCode))
+            {
+                throw new ArgumentException("Missing senderCode.");
+            }
+        } 
+        else if (context.Request.HasJsonContentType())
+        {
+            ApiRequest<ApiResponse>? requestBody;
+            string? requestBodyString;
+
+            using var reader = new StreamReader(
+                context.Request.Body, 
+                Encoding.UTF8,
+                detectEncodingFromByteOrderMarks: false,
+                leaveOpen: true
+            );
+
+            requestBodyString = await reader.ReadToEndAsync();
+
+            requestBody = JsonSerializer.Deserialize<ApiRequest<ApiResponse>>(requestBodyString);
+
+            // Validate Request Header
+            if (requestBody?.header == null)
+            {
+                throw new ArgumentException("Missing request header.");
+            }
+
+            if (requestBody.header.senderCode == null || requestBody.header.senderCode.Trim() == "")
+            {
+                throw new ArgumentException("Missing senderCode in request header.");
+            } 
+
+            // Validate Request Body
+            if (requestBody.body == null) {
+                throw new ArgumentException("Missing request body.");
+            }
+        }
+        else
+        {
+            throw new ArgumentException("Unsupported content type : {context.Request.ContentType}");
+        }
 
         context.Request.Body.Position = 0;
-
-        requestBody = JsonSerializer.Deserialize<ApiRequest<ApiResponse>>(requestBodyString);
-
-        // Validate Request Header
-        if (requestBody?.header == null)
-        {
-            throw new ArgumentException("Missing request header.");
-        }
-
-        if (requestBody.header.senderCode == null || requestBody.header.senderCode.Trim() == "")
-        {
-            throw new ArgumentException("Missing senderCode in request header.");
-        } 
-
-        // Validate Request Body
-        if (requestBody.body == null) {
-            throw new ArgumentException("Missing request body.");
-        }
-
-        await Task.CompletedTask;
     } 
 }
