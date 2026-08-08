@@ -1,4 +1,6 @@
-﻿using Google.Cloud.DiscoveryEngine.V1;
+﻿using System.Security.Cryptography;
+using System.Text;
+using Google.Cloud.DiscoveryEngine.V1;
 
 namespace EmbeddingCloudRun;
 
@@ -27,19 +29,46 @@ public class VertexImportService : IVertexImportService
             Endpoint = endpoint,
         }.BuildAsync();
 
-        var parent = BranchName.FromProjectLocationDataStoreBranch(project, location, datastore, "default_branch").ToString();
+        var parent = BranchName.FromProjectLocationDataStoreBranch(project, location, datastore, "default_branch");
 
-        var vertexRequest = new ImportDocumentsRequest
+        // var vertexRequest = new ImportDocumentsRequest
+        // {
+        //     Parent = parent,
+        //     GcsSource = new GcsSource
+        //     {
+        //         InputUris = { $"gs://{bucket}/{request.body.FileName}" },
+        //         DataSchema = "content",
+        //     },
+        //     ReconciliationMode = ImportDocumentsRequest.Types.ReconciliationMode.Full
+        // };
+
+        // await vertexClient.ImportDocumentsAsync(vertexRequest);
+
+        var documentId = GenerateDocumentId(request.body.FileName);
+
+        var document = new Document
         {
-            Parent = parent,
-            GcsSource = new GcsSource
+            Id = documentId,
+            Content = new Document.Types.Content
             {
-                InputUris = { $"gs://{bucket}/{request.body.FileName}" },
-                DataSchema = "content",
-            },
-            ReconciliationMode = ImportDocumentsRequest.Types.ReconciliationMode.Full
+                Uri = $"gs://{bucket}/{request.body.FileName}"
+            }
         };
 
-        await vertexClient.ImportDocumentsAsync(vertexRequest);
+        var createRequest = new CreateDocumentRequest
+        {
+            ParentAsBranchName = parent,
+            Document = document,
+            DocumentId = documentId
+        };
+
+        await vertexClient.CreateDocumentAsync(createRequest);
+    }
+
+    private string GenerateDocumentId(string fileName)
+    {
+        var hash256 = SHA256.HashData(Encoding.UTF8.GetBytes(fileName));
+
+        return Convert.ToHexString(hash256).ToLowerInvariant();
     }
 }

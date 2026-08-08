@@ -2,5 +2,5 @@
 
 public interface IEmbeddingSearchService
 {
-    public ValueTask<EmbeddingSearchResponse> EmbeddingSearch(ApiRequest<EmbeddingSearchRequest> request);
+    public ValueTask<ApiResponse> EmbeddingSearch(ApiRequest<EmbeddingSearchRequest> request);
 }

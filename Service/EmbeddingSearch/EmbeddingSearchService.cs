@@ -1,4 +1,5 @@
 ﻿using Google.Cloud.DiscoveryEngine.V1;
+using Google.Protobuf.WellKnownTypes;
 
 namespace EmbeddingCloudRun;
 
@@ -15,7 +16,7 @@ public class EmbeddingSearchService : IEmbeddingSearchService
         _httpClientFactory = httpClientFactory;
     }
 
-    public async ValueTask<EmbeddingSearchResponse> EmbeddingSearch(ApiRequest<EmbeddingSearchRequest> request)
+    public async ValueTask<ApiResponse> EmbeddingSearch(ApiRequest<EmbeddingSearchRequest> request)
     {
         var gcpClient = await new SearchServiceClientBuilder {
             Endpoint = "us-discoveryengine.googleapis.com"
@@ -42,6 +43,9 @@ public class EmbeddingSearchService : IEmbeddingSearchService
         {
             res.ResultAnsList.Add(item.Document?.DerivedStructData?.ToString() ?? string.Empty);
         }
+
+        res.resultCode = "0000";
+        res.resultMessage = "Import Index Success";
 
         return res;
     }

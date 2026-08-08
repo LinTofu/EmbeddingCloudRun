@@ -22,7 +22,7 @@ public class EmbeddingSearchController : BaseController
     /// </summary>
     [HttpPost]
     [Route("api/EmbeddingSearch")]
-    public async Task<ActionResult<EmbeddingSearchResponse>> EmbeddingSearch([FromBody] ApiRequest<EmbeddingSearchRequest> request)
+    public async Task<ActionResult<ApiResponse>> EmbeddingSearch([FromBody] ApiRequest<EmbeddingSearchRequest> request)
     {
         var response = await _embeddingSearchService.EmbeddingSearch(request);
         
