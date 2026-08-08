@@ -63,7 +63,7 @@ public class UploadDocService : IUploadDocService
             return new ApiResponse
             {
                 resultCode = "0000",
-                resultMessage = $"File '{fileName}' with content type '{contentType}' is ready to be uploaded to bucket '{bucketName}' using URL '{insertUrl}'."
+                resultMessage = $"File '{fileName}' with content type '{contentType}' is ready to be uploaded to bucket '{bucketName}'"
             };
         } 
         else
