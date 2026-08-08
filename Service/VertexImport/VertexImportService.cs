@@ -15,46 +15,31 @@ public class VertexImportService : IVertexImportService
 
     public async Task VertexBucketImport(ApiRequest<VertexImportRequest> request)
     {
-        try
+        var project = _configuration["VertexAISearch:Project"];
+        var location = _configuration["VertexAISearch:Location"];
+        var datastore = _configuration["VertexAISearch:DataStoreId"];
+        var endpoint = $"{location}-discoveryengine.googleapis.com";
+
+        var bucket = _configuration["GCP:Bucket:name"];
+
+        var vertexClient = await new DocumentServiceClientBuilder
         {
-            var project = _configuration["VertexAISearch:Project"];
-            var location = _configuration["VertexAISearch:Location"];
-            var datastore = _configuration["VertexAISearch:DataStoreId"];
-            var endpoint = $"{location}-discoveryengine.googleapis.com";
+            Endpoint = endpoint,
+        }.BuildAsync();
 
-            var bucket = _configuration["GCP:Bucket:name"];
+        var parent = BranchName.FromProjectLocationDataStoreBranch(project, location, datastore, "default_branch").ToString();
 
-            var vertexClient = await new DocumentServiceClientBuilder
-            {
-                Endpoint = endpoint,
-            }.BuildAsync();
-
-            var parent = BranchName.FromProjectLocationDataStoreBranch(project, location, datastore, "default_branch").ToString();
-
-            var vertexRequest = new ImportDocumentsRequest
-            {
-                Parent = parent,
-                GcsSource = new GcsSource
-                {
-                    // InputUris = { $"gs://{bucket}/{request.body.FileName}" },
-                    // DataSchema = "content",
-                    InputUris = { $"gs://{bucket}/*" },
-                    DataSchema = "content"
-                },
-                ReconciliationMode = ImportDocumentsRequest.Types.ReconciliationMode.Full
-            };
-
-            var operation = await vertexClient.ImportDocumentsAsync(vertexRequest);
-
-            _logger.LogInformation($"Import operation started: {operation.Name}");
-
-            // await operation.PollUntilCompletedAsync();
-
-            _logger.LogInformation($"Import operation completed: {operation.Name}");
-        }
-        catch (Exception ex)
+        var vertexRequest = new ImportDocumentsRequest
         {
-            throw new Exception($"Error occurred while performing vertex import: {ex.Message}", ex);
-        }
+            Parent = parent,
+            GcsSource = new GcsSource
+            {
+                InputUris = { $"gs://{bucket}/{request.body.FileName}" },
+                DataSchema = "content",
+            },
+            ReconciliationMode = ImportDocumentsRequest.Types.ReconciliationMode.Full
+        };
+
+        await vertexClient.ImportDocumentsAsync(vertexRequest);
     }
 }

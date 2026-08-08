@@ -7,14 +7,13 @@ namespace EmbeddingCloudRun;
 /// </summary>
 [ApiController]
 
-public class UploadDocController : ControllerBase
+public class UploadDocController : BaseController
 {
-    private readonly ILogger<UploadDocController> _logger;
     private readonly IUploadDocService _uploadDocService;
 
-    public UploadDocController(ILogger<UploadDocController> logger, IUploadDocService uploadDocService)
+    public UploadDocController(ILogger<UploadDocController> logger, IUploadDocService uploadDocService) 
+        : base(logger)
     {
-        _logger = logger;
         _uploadDocService = uploadDocService;
     }
 
@@ -26,16 +25,8 @@ public class UploadDocController : ControllerBase
     [Route("api/UploadDocToBucket")]
     public async Task<ActionResult<ApiResponse>> UploadDocToBucket([FromForm] ApiRequest<UploadDocRequest> request)
     {
-        try
-        {
-            var response = await _uploadDocService.UploadDocToBucket(request);
+        var response = await _uploadDocService.UploadDocToBucket(request);
 
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error occurred while uploading document to bucket.");
-            return StatusCode(500, new { error = ex.Message });
-        }
+        return Ok(response);
     }
 }

@@ -6,14 +6,13 @@ namespace EmbeddingCloudRun;
 /// Get embedding search results from GCP Vertex AI Search
 /// </summary>
 [ApiController]
-public class EmbeddingSearchController : ControllerBase
+public class EmbeddingSearchController : BaseController
 {
-    private readonly ILogger<EmbeddingSearchController> _logger;
     private readonly IEmbeddingSearchService _embeddingSearchService;
 
     public EmbeddingSearchController(ILogger<EmbeddingSearchController> logger, IEmbeddingSearchService embeddingSearchService)
+        : base(logger)
     {
-        _logger = logger;
         _embeddingSearchService = embeddingSearchService;
     }
 
@@ -25,16 +24,8 @@ public class EmbeddingSearchController : ControllerBase
     [Route("api/EmbeddingSearch")]
     public async Task<ActionResult<EmbeddingSearchResponse>> EmbeddingSearch([FromBody] ApiRequest<EmbeddingSearchRequest> request)
     {
-        try
-        {
-            var response = await _embeddingSearchService.EmbeddingSearch(request);
-            
-            return Ok(response);
-        } 
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error occurred while performing embedding search.");
-            return StatusCode(500, new { error = ex.Message });
-        }
+        var response = await _embeddingSearchService.EmbeddingSearch(request);
+        
+        return Ok(response);
     }
 }

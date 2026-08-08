@@ -1,3 +1,4 @@
+using EmbeddingCloudRun;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,7 +8,13 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.File("logs/api-.log", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
-builder.Host.UseSerilog();
+builder.Host.UseSerilog((context, services, logger) =>
+{
+    logger
+        .ReadFrom.Configuration(context.Configuration)
+        .Enrich.FromLogContext()
+        .WriteTo.Console();
+});
 
 // Add HTTP client factory
 builder.Services.AddHttpClient();
@@ -29,6 +36,8 @@ var app = builder.Build();
 app.MapOpenApi();
 app.UseSwagger();
 app.UseSwaggerUI();
+
+app.UseMiddleware<GlobalMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseAuthorization();

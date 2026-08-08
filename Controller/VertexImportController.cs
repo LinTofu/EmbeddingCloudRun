@@ -6,14 +6,13 @@ namespace EmbeddingCloudRun;
 /// Controller for handling Vertex AI import operations
 /// </summary>
 [ApiController]
-public class VertexImportController : ControllerBase
+public class VertexImportController : BaseController
 {
-    private readonly ILogger<VertexImportController> _logger;
     private readonly IVertexImportService _vertexImportService;
 
     public VertexImportController(ILogger<VertexImportController> logger, IVertexImportService vertexImportService)
+        : base(logger)
     {
-        _logger = logger;
         _vertexImportService = vertexImportService;
     }
 
@@ -25,20 +24,12 @@ public class VertexImportController : ControllerBase
     [Route("api/VertexImport")]
     public async Task<ActionResult<VertexImportResponse>> VertexImport([FromBody] ApiRequest<VertexImportRequest> request)
     {
-        try
+        await _vertexImportService.VertexBucketImport(request);
+        
+        return Ok(new ApiResponse
         {
-            await _vertexImportService.VertexBucketImport(request);
-            
-            return Ok(new ApiResponse
-            {
-                resultCode = "0000",
-                resultMessage = "Vertex import operation completed successfully."
-            });
-        } 
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error occurred while performing vertex import.");
-            return StatusCode(500, new { error = ex.Message });
-        }
+            resultCode = "0000",
+            resultMessage = "Vertex import operation completed successfully."
+        });
     }
 }

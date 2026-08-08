@@ -1,0 +1,115 @@
+﻿using System.Text;
+using System.Text.Json;
+using Google.Protobuf.WellKnownTypes;
+
+namespace EmbeddingCloudRun;
+
+public class GlobalMiddleware
+{
+    private readonly RequestDelegate _next;
+    private readonly ILogger<GlobalMiddleware> _logger;
+
+    public GlobalMiddleware(RequestDelegate next, ILogger<GlobalMiddleware> logger)
+    {
+        _next = next;
+        _logger = logger;
+    }
+
+    public async Task InvokeAsync(HttpContext context)
+    {
+        try
+        {
+            await ValidateRequest(context);
+
+            await _next(context);
+        }
+        catch (Exception ex)
+        {
+            await HandleExceptionAsync(context, ex);
+        }
+    }
+
+    private static Task HandleExceptionAsync(HttpContext context, Exception ex)
+    {
+        ApiResponse res;
+        
+        switch (ex)
+        {
+            case UnauthorizedAccessException:
+                res = new ApiResponse
+                {
+                    resultCode = "U401",
+                    resultMessage = "Unauthorized access.",
+                    errorMessage = ex.Message
+                };
+
+                context.Response.StatusCode = 401;
+
+                break;
+            case ArgumentException:
+                res = new ApiResponse
+                {
+                    resultCode = "U400",
+                    resultMessage = "Bad request.",
+                    errorMessage = ex.Message
+                };
+
+                context.Response.StatusCode = 400;
+
+                break;
+            default:
+                res = new ApiResponse
+                {
+                    resultCode = "U500",
+                    resultMessage = "Internal server error.",
+                    errorMessage = ex.Message
+                };
+
+                context.Response.StatusCode = 500;
+
+                break;
+        }
+
+        return context.Response.WriteAsJsonAsync(res);
+    }
+
+    private async Task ValidateRequest(HttpContext context)
+    {
+        // Read Request Content
+        context.Request.EnableBuffering();
+
+        ApiRequest<ApiResponse>? requestBody;
+        string? requestBodyString;
+
+        using var reader = new StreamReader(
+            context.Request.Body, 
+            Encoding.UTF8,
+            detectEncodingFromByteOrderMarks: false,
+            leaveOpen: true
+        );
+
+        requestBodyString = await reader.ReadToEndAsync();
+
+        context.Request.Body.Position = 0;
+
+        requestBody = JsonSerializer.Deserialize<ApiRequest<ApiResponse>>(requestBodyString);
+
+        // Validate Request Header
+        if (requestBody?.header == null)
+        {
+            throw new ArgumentException("Missing request header.");
+        }
+
+        if (requestBody.header.senderCode == null || requestBody.header.senderCode.Trim() == "")
+        {
+            throw new ArgumentException("Missing senderCode in request header.");
+        } 
+
+        // Validate Request Body
+        if (requestBody.body == null) {
+            throw new ArgumentException("Missing request body.");
+        }
+
+        await Task.CompletedTask;
+    } 
+}

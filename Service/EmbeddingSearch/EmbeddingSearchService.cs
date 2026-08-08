@@ -17,41 +17,32 @@ public class EmbeddingSearchService : IEmbeddingSearchService
 
     public async ValueTask<EmbeddingSearchResponse> EmbeddingSearch(ApiRequest<EmbeddingSearchRequest> request)
     {
-        try
+        var gcpClient = await new SearchServiceClientBuilder {
+            Endpoint = "us-discoveryengine.googleapis.com"
+        }.BuildAsync();
+
+        var project = _config["VertexAISearch:Project"];
+        var location = _config["VertexAISearch:Location"];
+        var engines = _config["VertexAISearch:Engines"];
+
+        var servingConfig = ServingConfigName.FromProjectLocationCollectionEngineServingConfig(project, location, "default_collection", engines, "default_search");
+
+        var searchRequest = new SearchRequest
         {
-            var gcpClient = await new SearchServiceClientBuilder {
-                Endpoint = "us-discoveryengine.googleapis.com"
-            }.BuildAsync();
+            ServingConfigAsServingConfigName = servingConfig,
+            Query = request.body.Query,
+            PageSize = request.body.ResultSize ?? 15
+        };
 
-            var project = _config["VertexAISearch:Project"];
-            var location = _config["VertexAISearch:Location"];
-            var engines = _config["VertexAISearch:Engines"];
+        var searchResponse = gcpClient.Search(searchRequest);
 
-            var servingConfig = ServingConfigName.FromProjectLocationCollectionEngineServingConfig(project, location, "default_collection", engines, "default_search");
+        var res = new EmbeddingSearchResponse();
 
-            var searchRequest = new SearchRequest
-            {
-                ServingConfigAsServingConfigName = servingConfig,
-                Query = request.body.Query,
-                PageSize = request.body.ResultSize ?? 15
-            };
-
-            var searchResponse = gcpClient.Search(searchRequest);
-
-            var res = new EmbeddingSearchResponse();
-
-            foreach (var item in searchResponse)
-            {
-                res.ResultAnsList.Add(item.Document?.DerivedStructData?.ToString() ?? string.Empty);
-            }
-
-            return res;
-        }
-        catch (Exception ex)
+        foreach (var item in searchResponse)
         {
-            _logger.LogError(ex, "Error occurred while performing embedding search.");
-            Console.WriteLine(ex);
-            throw;
+            res.ResultAnsList.Add(item.Document?.DerivedStructData?.ToString() ?? string.Empty);
         }
+
+        return res;
     }
 }
