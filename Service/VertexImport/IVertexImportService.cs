@@ -2,5 +2,7 @@
 
 public interface IVertexImportService
 {
-    public Task VertexBucketImport(ApiRequest<VertexImportRequest> request);
+    public Task VertexIndexCreate(ApiRequest<VertexImportRequest> request);
+
+    public Task VertexIndexDelete(ApiRequest<VertexImportRequest> request);
 }

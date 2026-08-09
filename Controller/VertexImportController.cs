@@ -17,14 +17,31 @@ public class VertexImportController : BaseController
     }
 
     /// <summary>
-    /// POST: api/VertexImport
-    /// Import data into GCP Vertex AI
+    /// POST: api/VertexIndexCreate
+    /// Create doc index into GCP Vertex AI
     /// </summary>
     [HttpPost]
-    [Route("api/VertexImport")]
-    public async Task<ActionResult<VertexImportResponse>> VertexImport([FromBody] ApiRequest<VertexImportRequest> request)
+    [Route("api/VertexIndexCreate")]
+    public async Task<ActionResult<VertexImportResponse>> VertexIndexCreate([FromBody] ApiRequest<VertexImportRequest> request)
     {
-        await _vertexImportService.VertexBucketImport(request);
+        await _vertexImportService.VertexIndexCreate(request);
+        
+        return Ok(new ApiResponse
+        {
+            resultCode = "0000",
+            resultMessage = "Vertex import operation completed successfully."
+        });
+    }
+
+    /// <summary>
+    /// POST: api/VertexIndexDelete
+    /// Delete doc index from GCP Vertex AI
+    /// </summary>
+    [HttpPost]
+    [Route("api/VertexIndexDelete")]
+    public async Task<ActionResult<VertexImportResponse>> VertexIndexDelete([FromBody] ApiRequest<VertexImportRequest> request)
+    {
+        await _vertexImportService.VertexIndexDelete(request);
         
         return Ok(new ApiResponse
         {

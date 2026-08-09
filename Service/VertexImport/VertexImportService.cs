@@ -1,6 +1,7 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 using Google.Cloud.DiscoveryEngine.V1;
+using Google.Protobuf.WellKnownTypes;
 
 namespace EmbeddingCloudRun;
 
@@ -15,7 +16,7 @@ public class VertexImportService : IVertexImportService
         _configuration = configuration;
     }
 
-    public async Task VertexBucketImport(ApiRequest<VertexImportRequest> request)
+    public async Task VertexIndexCreate(ApiRequest<VertexImportRequest> request)
     {
         var project = _configuration["VertexAISearch:Project"];
         var location = _configuration["VertexAISearch:Location"];
@@ -49,6 +50,15 @@ public class VertexImportService : IVertexImportService
         var document = new Document
         {
             Id = documentId,
+            StructData = new Struct
+            {
+                Fields =
+                {
+                    ["title"] = Value.ForString(request.body.FileName),
+                    ["fileName"] = Value.ForString(request.body.FileName),
+                    ["gcsUri"] = Value.ForString($"gs://{bucket}/{request.body.FileName}")
+                }
+            },
             Content = new Document.Types.Content
             {
                 Uri = $"gs://{bucket}/{request.body.FileName}"
@@ -63,6 +73,25 @@ public class VertexImportService : IVertexImportService
         };
 
         await vertexClient.CreateDocumentAsync(createRequest);
+    }
+
+    public async Task VertexIndexDelete(ApiRequest<VertexImportRequest> request)
+    {
+        var project = _configuration["VertexAISearch:Project"];
+        var location = _configuration["VertexAISearch:Location"];
+        var datastore = _configuration["VertexAISearch:DataStoreId"];
+        var endpoint = $"{location}-discoveryengine.googleapis.com";
+
+        var vertexClient = await new DocumentServiceClientBuilder
+        {
+            Endpoint = endpoint,
+        }.BuildAsync();
+
+        var documentId = GenerateDocumentId(request.body.FileName);
+
+        var documentName = DocumentName.FromProjectLocationDataStoreBranchDocument(project, location, datastore, "default_branch", documentId);
+
+        await vertexClient.DeleteDocumentAsync(documentName);
     }
 
     private string GenerateDocumentId(string fileName)
