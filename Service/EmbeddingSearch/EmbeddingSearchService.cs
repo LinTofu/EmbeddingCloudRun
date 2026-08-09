@@ -41,11 +41,11 @@ public class EmbeddingSearchService : IEmbeddingSearchService
 
         foreach (var item in searchResponse)
         {
-            res.ResultAnsList.Add(item.Document?.DerivedStructData?.ToString() ?? string.Empty);
+            res.ResultAnsList.Add(item.Document?.DerivedStructData?.Fields["title"].StringValue ?? string.Empty);
         }
 
         res.resultCode = "0000";
-        res.resultMessage = "Import Index Success";
+        res.resultMessage = "Search Success";
 
         return res;
     }
