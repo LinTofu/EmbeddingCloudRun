@@ -61,7 +61,8 @@ public class VertexImportService : IVertexImportService
             },
             Content = new Document.Types.Content
             {
-                Uri = $"gs://{bucket}/{request.body.FileName}"
+                Uri = $"gs://{bucket}/{request.body.FileName}",
+                MimeType = request.body.contentType
             }
         };
 
