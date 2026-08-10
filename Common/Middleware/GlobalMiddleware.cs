@@ -17,19 +17,30 @@ public class GlobalMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
+        var originalResponseBody = context.Response.Body;
+        await using var responseBody = new MemoryStream();
+        context.Response.Body = responseBody;
+
         try
         {
             await ValidateRequest(context);
 
             await _next(context);
+
+            await LoggingApiResponse(context);
+
+            context.Response.Body.Position = 0;
+
+            await responseBody.CopyToAsync(originalResponseBody);
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, ex.Message);
             await HandleExceptionAsync(context, ex);
         }
     }
 
-    private static Task HandleExceptionAsync(HttpContext context, Exception ex)
+    private async Task HandleExceptionAsync(HttpContext context, Exception ex)
     {
         ApiResponse res;
         
@@ -70,7 +81,7 @@ public class GlobalMiddleware
                 break;
         }
 
-        return context.Response.WriteAsJsonAsync(res);
+        await context.Response.WriteAsJsonAsync(res);
     }
 
     private async Task ValidateRequest(HttpContext context)
@@ -93,6 +104,8 @@ public class GlobalMiddleware
             {
                 throw new ArgumentException("Missing senderCode.");
             }
+
+            _logger.LogInformation("header.senderCode: {senderCode}, filename: {filename}, contentType: {contentType}", senderCode, form.Files[0].FileName, form.Files[0].ContentType);
         } 
         else if (context.Request.HasJsonContentType())
         {
@@ -125,6 +138,8 @@ public class GlobalMiddleware
             if (requestBody.body == null) {
                 throw new ArgumentException("Missing request body.");
             }
+
+            _logger.LogInformation("FullRoute: {route}, request: {request}", context.Request.Path, requestBodyString);
         }
         else
         {
@@ -133,4 +148,23 @@ public class GlobalMiddleware
 
         context.Request.Body.Position = 0;
     } 
+
+    private async Task LoggingApiResponse(HttpContext context)
+    {
+        context.Response.Body.Position = 0; 
+
+        // Read Response Content
+        using var reader = new StreamReader(
+            context.Response.Body,
+            Encoding.UTF8,
+            detectEncodingFromByteOrderMarks: false,
+            leaveOpen: true
+        );
+
+        var responseBody = await reader.ReadToEndAsync();
+
+        context.Response.Body.Position = 0; 
+
+        _logger.LogInformation("FullRoute: {route}, response: {response}", context.Request.Path, responseBody);        
+    }
 }

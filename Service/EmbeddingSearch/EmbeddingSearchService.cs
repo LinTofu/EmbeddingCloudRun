@@ -1,5 +1,4 @@
 ﻿using Google.Cloud.DiscoveryEngine.V1;
-using Google.Protobuf.WellKnownTypes;
 
 namespace EmbeddingCloudRun;
 
