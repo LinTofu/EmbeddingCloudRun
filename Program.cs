@@ -12,8 +12,7 @@ builder.Host.UseSerilog((context, services, logger) =>
 {
     logger
         .ReadFrom.Configuration(context.Configuration)
-        .Enrich.FromLogContext()
-        .WriteTo.Console();
+        .Enrich.FromLogContext();
 });
 
 // Add HTTP client factory
